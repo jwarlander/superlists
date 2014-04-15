@@ -1,2 +1,1 @@
 Django==1.7b1
-selenium==2.41.0
