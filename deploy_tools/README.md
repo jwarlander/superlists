@@ -9,11 +9,6 @@ Provisioning a new site
 * pip
 * virtualenv
 
-eg, on Ubuntu:
-
-    sudo apt-get install nginx git python3 python3-pip
-    sudo pip3 install virtualenv
-
 
 ## Templates:
 
@@ -42,9 +37,30 @@ Assume we have a user account at /home/`{{ deployment_user }}`
 
     /home/{{ deployment_user }}
     └── sites
-        └── {{ site_fqdn }}
+        └── {{ site_fqdn }} (checked out from git repo)
              ├── database
-             ├── source
              ├── static
-             └── virtualenv
+             ├── virtualenv
+             └── ..other stuff
 
+## Setup:
+
+    # prepare the system
+    sudo apt-get install nginx git python3 python3-pip
+    sudo pip3 install virtualenv
+    # set up project environment
+    mkdir -p /home/{{ deployment_user }}/sites
+    cd /home/{{ deployment_user }}/sites
+    git clone git@bitbucket.org:jwarlander/superlists.git {{ site_fqdn }}
+    cd {{ site_fqdn }}
+    virtualenv --python=python3 virtualenv
+    virtualenv/bin/pip install -r requirements-prod.txt
+    # deploy configuration files
+    sudo cp deploy_tools/nginx.conf.j2 /etc/nginx/sites-available/{{ site_fqdn }}
+    ## ..modify /etc/nginx/sites-available/{{ site_fqdn }} as needed
+    sudo ln -s ../sites-available/{{ site_fqdn }} /etc/nginx/sites-enabled/
+    sudo cp deploy_tools/gunicorn-upstart.conf.j2 /etc/init/gunicorn-{{ site_fqdn }}.conf
+    ## ..modify /etc/init/gunicorn-{{ site_fqdn }}.conf as needed
+    # start services
+    sudo service nginx restart
+    sudo start gunicorn-{{ site_fqdn }}

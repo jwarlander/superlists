@@ -1,6 +1,8 @@
 *~
 *.pyc
+*.pyo
 *.swp
 db.sqlite3
-/env/
+/virtualenv/
+/static/
 __pycache__

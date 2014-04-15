@@ -6,8 +6,8 @@ stop on shutdown
 respawn
 
 setuid {{ deployment_user }}
-chdir /home/{{ deployment_user }}/sites/{{ site_fqdn }}/source
+chdir /home/{{ deployment_user }}/sites/{{ site_fqdn }}
 
-exec ../virtualenv/bin/gunicorn \
+exec virtualenv/bin/gunicorn \
 	--bind unix:/tmp/{{ site_fqdn }}.socket \
 	{{ django_project_name }}.wsgi:application

@@ -1,2 +1,2 @@
 -r requirements-core.txt
-selenium==2.41.0
+gunicorn==18.0
