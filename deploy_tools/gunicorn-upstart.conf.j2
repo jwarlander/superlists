@@ -1,0 +1,13 @@
+description "Gunicorn server for {{ site_fqdn }}"
+
+start on net-device-up
+stop on shutdown
+
+respawn
+
+setuid {{ deployment_user }}
+chdir /home/{{ deployment_user }}/sites/{{ site_fqdn }}/source
+
+exec ../virtualenv/bin/gunicorn \
+	--bind unix:/tmp/{{ site_fqdn }}.socket \
+	{{ django_project_name }}.wsgi:application
