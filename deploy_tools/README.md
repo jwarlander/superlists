@@ -81,21 +81,24 @@ The project contains a playbook that will automatically do all of the above.
 
 ### USAGE
 
+The playbook can be executed from anywhere, as long as you have Ansible
+installed and can connect to the server as `root` over SSH.
+
 To do a staging deployment:
 
 -   Edit `deploy_tools/ansible/hosts-staging` and replace SERVER_IP,
-    SITE_NAME and SITE_USER
--   Go to the `deploy_tools/ansible` directory:
-
-        cd deploy_tools/ansible
-
+    SITE_NAME, SITE_USER and REPO_URL
 -   Run the playbook; either with password-based access:
 
-        ansible-playbook -i hosts-staging site.yml --ask-pass
+        ansible-playbook deploy_tools/ansible/site.yml \
+                         -i deploy_tools/ansible/hosts-staging \
+                         --ask-pass
 
     ..or, if you have an SSH key:
 
-        ansible-playbook -i hosts-staging site.yml --private-key=<path_to_keyfile>
+        ansible-playbook deploy_tools/ansible/site.yml \
+                         -i deploy_tools/ansible/hosts-staging \
+                         --private-key=<PATH_TO_KEYFILE>
 
 For a production deployment, repeat the above with `hosts-prod` instead of
 `hosts-staging`.

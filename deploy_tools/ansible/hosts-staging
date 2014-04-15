@@ -4,3 +4,5 @@ SERVER_IP
 [web:vars]
 site_fqdn=SITE_NAME
 deployment_user=SITE_USER
+django_project_name=superlists
+django_project_repo=REPO_URL
