@@ -5,8 +5,6 @@
 
   vars:
     - deployment_dir: /home/{{ deployment_user }}/sites/{{ site_fqdn }}
-    - django_project_name: superlists
-    - django_project_repo: https://someplace/someuser/superlists.git
 
   tasks:
     - name: Create user account
@@ -27,13 +25,13 @@
       git: repo={{ django_project_repo }}
            dest={{ deployment_dir }}
            update=no
-      remote_user: "{{ deployment_user }}"
+      sudo_user: "{{ deployment_user }}"
 
     - name: Install project dependencies in virtualenv
       pip: requirements={{ deployment_dir }}/requirements-prod.txt
            virtualenv={{ deployment_dir }}/virtualenv
            virtualenv_command=virtualenv-3.3
-      remote_user: "{{ deployment_user }}"
+      sudo_user: "{{ deployment_user }}"
 
     - name: Create database
       django_manage: >
@@ -41,7 +39,7 @@
           app_path="{{ deployment_dir }}"
           settings="{{ django_project_name }}.settings"
           virtualenv="{{ deployment_dir }}/virtualenv"
-      remote_user: "{{ deployment_user }}"
+      sudo_user: "{{ deployment_user }}"
 
     - name: Collect static content
       django_manage: >
@@ -49,7 +47,7 @@
           app_path="{{ deployment_dir }}"
           settings="{{ django_project_name }}.settings"
           virtualenv="{{ deployment_dir }}/virtualenv"
-      remote_user: "{{ deployment_user }}"
+      sudo_user: "{{ deployment_user }}"
 
     - name: Deploy NGINX configuration
       template: src=nginx.conf.j2
@@ -60,7 +58,7 @@
 
     - name: Deploy Gunicorn upstart configuration
       template: src=gunicorn-upstart.conf.j2
-                dest=/etc/init/gunicorn-{{ site_fqdn }}
+                dest=/etc/init/gunicorn-{{ site_fqdn }}.conf
                 owner=root mode=0644
       notify:
         - restart gunicorn
