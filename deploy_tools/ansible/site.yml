@@ -1,17 +1,21 @@
 # Ansible playbook for deploying the application to a server.
 #
+
+# Begin with system setup; these are done as root
+
 - hosts: web
   remote_user: root
 
-  vars:
-    - deployment_dir: /home/{{ deployment_user }}/sites/{{ site_fqdn }}
-    - secret_key: "{{ lookup('password', '/tmp/' + site_fqdn + '.key length=50') }}"
-
   tasks:
+
     - name: Create user account
       user: name={{ deployment_user }}
 
-    - name: Install system packages
+    - name: Install local SSH key into authorized_keys
+      authorized_key: 'user={{ deployment_user }}
+                       key="{{ lookup(''file'', ''~/.ssh/id_rsa.pub'') }}"'
+
+    - name: Install system-wide OS packages
       apt: name={{ item }} state=present
       with_items:
         - nginx
@@ -19,63 +23,23 @@
         - python3
         - python3-pip
 
-    - name: Install python packages
+    - name: Install system-wide Python packages
       pip: name=virtualenv state=present executable=pip3
 
-    - name: Clone git repo
-      git: repo={{ django_project_repo }}
-           dest={{ deployment_dir }}
-           update=no
-      sudo_user: "{{ deployment_user }}"
-
-    - name: Disable DEBUG mode
-      lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
-                   regexp=''^DEBUG = True''
-                   line=''DEBUG = False'''
-
-    - name: Configure ALLOWED_HOSTS
-      lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
-                   regexp=''^ALLOWED_HOSTS =.*''
-                   line=''ALLOWED_HOSTS = ["{{ site_fqdn }}"]'''
-
-    - name: Deploy SECRET_KEY if missing
-      copy: 'content=''SECRET_KEY = "{{ secret_key }}"''
-             dest={{ deployment_dir }}/{{ django_project_name }}/secret_key.py
-             force=no'
-      sudo_user: "{{ deployment_user }}"
-
-    - name: Import SECRET_KEY
-      lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
-                   line=''from .secret_key import SECRET_KEY''
-                   insertafter=EOF
-                   state=present'
-
-    - name: Install project dependencies in virtualenv
-      pip: requirements={{ deployment_dir }}/requirements-prod.txt
-           virtualenv={{ deployment_dir }}/virtualenv
-           virtualenv_command=virtualenv-3.3
-      sudo_user: "{{ deployment_user }}"
-
-    - name: Create database
-      django_manage: >
-          command=syncdb
-          app_path="{{ deployment_dir }}"
-          settings="{{ django_project_name }}.settings"
-          virtualenv="{{ deployment_dir }}/virtualenv"
-      sudo_user: "{{ deployment_user }}"
-
-    - name: Collect static content
-      django_manage: >
-          command=collectstatic
-          app_path="{{ deployment_dir }}"
-          settings="{{ django_project_name }}.settings"
-          virtualenv="{{ deployment_dir }}/virtualenv"
-      sudo_user: "{{ deployment_user }}"
+    - name: Disable NGINX default site
+      file: path=/etc/nginx/sites-enabled/default state=absent
 
     - name: Deploy NGINX configuration
       template: src=nginx.conf.j2
                 dest=/etc/nginx/sites-available/{{ site_fqdn }}
                 owner=root mode=0644
+      notify:
+        - restart nginx
+
+    - name: Enable NGINX configuration
+      file: src=/etc/nginx/sites-available/{{ site_fqdn }}
+            dest=/etc/nginx/sites-enabled/{{ site_fqdn }}
+            state=link
       notify:
         - restart nginx
 
@@ -94,8 +58,83 @@
 
   handlers:
 
-    - name: restart nginx
-      service: name=nginx state=restarted
+    - include: handlers.yml
 
-    - name: restart gunicorn
-      service: name=gunicorn-{{ site_fqdn }} state=restarted
+
+# Application setup; do these as the site user
+
+- hosts: web
+  remote_user: "{{ deployment_user }}"
+  gather_facts: false
+
+  # Set variables for use during this play
+
+  vars:
+    - deployment_dir: /home/{{ deployment_user }}/sites/{{ site_fqdn }}
+    - secret_key: "{{ lookup('password', '/tmp/' + site_fqdn + '.key length=50') }}"
+
+  # The tasks to perform
+
+  tasks:
+
+    - name: Clone git repo
+      git: repo={{ django_project_repo }}
+           dest={{ deployment_dir }}
+           update=no
+      notify:
+        - restart gunicorn
+
+    - name: Disable DEBUG mode
+      lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
+                   regexp=''^DEBUG = True''
+                   line=''DEBUG = False'''
+      notify:
+        - restart gunicorn
+
+    - name: Configure ALLOWED_HOSTS
+      lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
+                   regexp=''^ALLOWED_HOSTS =.*''
+                   line=''ALLOWED_HOSTS = ["{{ site_fqdn }}"]'''
+      notify:
+        - restart gunicorn
+
+    - name: Deploy SECRET_KEY if missing
+      copy: 'content=''SECRET_KEY = "{{ secret_key }}"''
+             dest={{ deployment_dir }}/{{ django_project_name }}/secret_key.py
+             force=no'
+      notify:
+        - restart gunicorn
+
+    - name: Import SECRET_KEY
+      lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
+                   line=''from .secret_key import SECRET_KEY''
+                   insertafter=EOF
+                   state=present'
+      notify:
+        - restart gunicorn
+
+    - name: Install project dependencies in virtualenv
+      pip: requirements={{ deployment_dir }}/requirements-prod.txt
+           virtualenv={{ deployment_dir }}/virtualenv
+           virtualenv_command=virtualenv-3.3
+      notify:
+        - restart gunicorn
+
+    - name: Collect static content
+      django_manage: >
+          command=collectstatic
+          app_path="{{ deployment_dir }}"
+          settings="{{ django_project_name }}.settings"
+          virtualenv="{{ deployment_dir }}/virtualenv"
+
+    - name: Create or update database
+      django_manage: >
+          command=migrate
+          app_path="{{ deployment_dir }}"
+          settings="{{ django_project_name }}.settings"
+          virtualenv="{{ deployment_dir }}/virtualenv"
+      sudo_user: "{{ deployment_user }}"
+
+  handlers:
+
+    - include: handlers.yml

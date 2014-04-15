@@ -1,0 +1,8 @@
+---
+- name: restart nginx
+  service: name=nginx state=restarted
+  remote_user: root
+
+- name: restart gunicorn
+  service: name=gunicorn-{{ site_fqdn }} state=restarted
+  remote_user: root
