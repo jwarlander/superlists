@@ -1,0 +1,80 @@
+# Ansible playbook for deploying the application to a server.
+#
+- hosts: web
+  remote_user: root
+
+  vars:
+    - deployment_dir: /home/{{ deployment_user }}/sites/{{ site_fqdn }}
+    - django_project_name: superlists
+    - django_project_repo: https://someplace/someuser/superlists.git
+
+  tasks:
+    - name: Create user account
+      user: name={{ deployment_user }}
+
+    - name: Install system packages
+      apt: name={{ item }} state=present
+      with_items:
+        - nginx
+        - git
+        - python3
+        - python3-pip
+
+    - name: Install python packages
+      pip: name=virtualenv state=present executable=pip3
+
+    - name: Clone git repo
+      git: repo={{ django_project_repo }}
+           dest={{ deployment_dir }}
+           update=no
+      remote_user: "{{ deployment_user }}"
+
+    - name: Install project dependencies in virtualenv
+      pip: requirements={{ deployment_dir }}/requirements-prod.txt
+           virtualenv={{ deployment_dir }}/virtualenv
+           virtualenv_command=virtualenv-3.3
+      remote_user: "{{ deployment_user }}"
+
+    - name: Create database
+      django_manage: >
+          command=syncdb
+          app_path="{{ deployment_dir }}"
+          settings="{{ django_project_name }}.settings"
+          virtualenv="{{ deployment_dir }}/virtualenv"
+      remote_user: "{{ deployment_user }}"
+
+    - name: Collect static content
+      django_manage: >
+          command=collectstatic
+          app_path="{{ deployment_dir }}"
+          settings="{{ django_project_name }}.settings"
+          virtualenv="{{ deployment_dir }}/virtualenv"
+      remote_user: "{{ deployment_user }}"
+
+    - name: Deploy NGINX configuration
+      template: src=nginx.conf.j2
+                dest=/etc/nginx/sites-available/{{ site_fqdn }}
+                owner=root mode=0644
+      notify:
+        - restart nginx
+
+    - name: Deploy Gunicorn upstart configuration
+      template: src=gunicorn-upstart.conf.j2
+                dest=/etc/init/gunicorn-{{ site_fqdn }}
+                owner=root mode=0644
+      notify:
+        - restart gunicorn
+
+    - name: Enable NGINX
+      service: name=nginx state=started enabled=yes
+
+    - name: Enable Gunicorn
+      service: name=gunicorn-{{ site_fqdn }} state=started enabled=yes
+
+  handlers:
+
+    - name: restart nginx
+      service: name=nginx state=restarted
+
+    - name: restart gunicorn
+      service: name=gunicorn-{{ site_fqdn }} state=restarted

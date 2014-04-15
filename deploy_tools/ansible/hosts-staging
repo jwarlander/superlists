@@ -1,0 +1,6 @@
+[web]
+SERVER_IP
+
+[web:vars]
+site_fqdn=SITE_NAME
+deployment_user=SITE_USER

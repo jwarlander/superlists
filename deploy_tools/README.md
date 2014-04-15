@@ -69,3 +69,33 @@ Assume we have a user account at /home/`{{ deployment_user }}`
     # start services
     sudo service nginx restart
     sudo start gunicorn-{{ site_fqdn }}
+
+## Deployment using Ansible
+
+The project contains a playbook that will automatically do all of the above.
+
+### Requirements
+
+-   server exists, the IP is known, and you have root access
+-   currently assumes Ubuntu 13.x
+
+### USAGE
+
+To do a staging deployment:
+
+-   Edit `deploy_tools/ansible/hosts-staging` and replace SERVER_IP,
+    SITE_NAME and SITE_USER
+-   Go to the `deploy_tools/ansible` directory:
+
+        cd deploy_tools/ansible
+
+-   Run the playbook; either with password-based access:
+
+        ansible-playbook -i hosts-staging site.yml --ask-pass
+
+    ..or, if you have an SSH key:
+
+        ansible-playbook -i hosts-staging site.yml --private-key=<path_to_keyfile>
+
+For a production deployment, repeat the above with `hosts-prod` instead of
+`hosts-staging`.
