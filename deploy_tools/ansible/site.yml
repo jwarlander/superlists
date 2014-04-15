@@ -31,12 +31,19 @@
 
     - name: Deploy NGINX configuration
       template: src=nginx.conf.j2
+                dest=/etc/nginx/nginx.conf
+                owner=root mode=0644
+      notify:
+        - restart nginx
+
+    - name: Deploy NGINX site
+      template: src=nginx-site.conf.j2
                 dest=/etc/nginx/sites-available/{{ site_fqdn }}
                 owner=root mode=0644
       notify:
         - restart nginx
 
-    - name: Enable NGINX configuration
+    - name: Enable NGINX site
       file: src=/etc/nginx/sites-available/{{ site_fqdn }}
             dest=/etc/nginx/sites-enabled/{{ site_fqdn }}
             state=link
@@ -51,10 +58,10 @@
         - restart gunicorn
 
     - name: Enable NGINX
-      service: name=nginx state=started enabled=yes
+      service: name=nginx enabled=yes
 
     - name: Enable Gunicorn
-      service: name=gunicorn-{{ site_fqdn }} state=started enabled=yes
+      service: name=gunicorn-{{ site_fqdn }} enabled=yes
 
   handlers:
 
