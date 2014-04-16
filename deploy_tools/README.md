@@ -86,7 +86,8 @@ installed and can connect to the server as `root` over SSH.
 
 To do a staging deployment:
 
--   Edit `deploy_tools/ansible/hosts-staging` and replace SERVER_IP,
+-   Copy `deploy_tools/ansible/hosts-staging.template` to
+    `deploy_tools/ansible/hosts-staging` and replace SERVER_IP,
     SITE_NAME, SITE_USER and REPO_URL
 -   Run the playbook; either with password-based access:
 

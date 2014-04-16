@@ -86,33 +86,34 @@
 
     - name: Clone git repo
       git: repo={{ django_project_repo }}
+           version={{ django_project_version }}
            dest={{ deployment_dir }}
-           update=no
+           update=yes
       notify:
         - restart gunicorn
 
-    - name: Disable DEBUG mode
+    - name: Disable DEBUG mode in settings.py
       lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
                    regexp=''^DEBUG = True''
                    line=''DEBUG = False'''
       notify:
         - restart gunicorn
 
-    - name: Configure ALLOWED_HOSTS
+    - name: Configure ALLOWED_HOSTS in settings.py
       lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
                    regexp=''^ALLOWED_HOSTS =.*''
                    line=''ALLOWED_HOSTS = ["{{ site_fqdn }}"]'''
       notify:
         - restart gunicorn
 
-    - name: Deploy SECRET_KEY if missing
+    - name: Deploy new SECRET_KEY if missing
       copy: 'content=''SECRET_KEY = "{{ secret_key }}"''
              dest={{ deployment_dir }}/{{ django_project_name }}/secret_key.py
              force=no'
       notify:
         - restart gunicorn
 
-    - name: Import SECRET_KEY
+    - name: Import SECRET_KEY in settings.py
       lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
                    line=''from .secret_key import SECRET_KEY''
                    insertafter=EOF
