@@ -16,13 +16,7 @@ var initialize = function (navigator, user, token, urls) {
                 .done(function () { window.location.reload(); })
                 .fail(function () { navigator.id.logout(); });
         },
-        onlogout: function () {
-            $.post(
-                urls.logout,
-                { csrfmiddlewaretoken: token }
-            )
-                .done(function () { window.location.reload(); })
-        },
+        onlogout: function () { },
         onready: function () {
             $('<div id="id_login_done"></div>').insertAfter("#id_logout");
             $('<div id="id_logout_done"></div>').insertAfter("#id_login");
