@@ -99,10 +99,10 @@
       notify:
         - restart gunicorn
 
-    - name: Configure ALLOWED_HOSTS in settings.py
+    - name: Configure DOMAIN in settings.py
       lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
-                   regexp=''^ALLOWED_HOSTS =.*''
-                   line=''ALLOWED_HOSTS = ["{{ site_fqdn }}"]'''
+                   regexp=''^DOMAIN =.*''
+                   line=''DOMAIN = "{{ site_fqdn }}"'''
       notify:
         - restart gunicorn
 
