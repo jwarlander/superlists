@@ -13,7 +13,6 @@ def ansible_staging_cmd(pattern, module, args):
                 '--module-name={}'.format(module),
                 '--args={}'.format(args),
                 '--user="{{ deployment_user }}"',
-                '-vvvv',
             ],
             stderr=subprocess.STDOUT,
             cwd=THIS_FOLDER
@@ -26,7 +25,7 @@ def ansible_staging_cmd(pattern, module, args):
         print('<<<<<<<<<<<<<<<')
         raise
     assert result != 'No hosts matched', 'No hosts matched for Ansible command'
-    return result
+    return result.split('\n')[-1]
 
 
 def create_session_on_server(host, email):
