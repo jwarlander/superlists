@@ -1,9 +1,12 @@
 [web]
-SERVER_IP
+SITE_NAME ansible_ssh_host=SERVER_IP
 
 [web:vars]
 site_fqdn=SITE_NAME
 deployment_user=SITE_USER
+deployment_dir=/home/{{ deployment_user }}/sites/{{ site_fqdn }}
 django_project_name=superlists
 django_project_repo=REPO_URL
 django_project_version=LIVE
+django_python="{{ deployment_dir }}/virtualenv/bin/python"
+django_manage_cmd="{{ django_python }} {{ deployment_dir }}/manage.py"

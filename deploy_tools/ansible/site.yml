@@ -77,7 +77,6 @@
   # Set variables for use during this play
 
   vars:
-    - deployment_dir: /home/{{ deployment_user }}/sites/{{ site_fqdn }}
     - secret_key: "{{ lookup('password', '/tmp/' + site_fqdn + '.key length=50') }}"
 
   # The tasks to perform
