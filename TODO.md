@@ -8,6 +8,9 @@
     -    test doesn't fail properly even if Persona logout is skipped
          in favor of only doing a Django logout
     -    it does seem to crash Django at that point, though..?
+-   Look at alternative mocking frameworks; unittest.mock feels somewhat
+    confusing in some use cases..
+
 
 ## Done
 
