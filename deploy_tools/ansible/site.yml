@@ -63,6 +63,10 @@
     - name: Enable Gunicorn
       service: name=gunicorn-{{ site_fqdn }} enabled=yes
 
+    - name: Install Opbeat CLI
+      when: django_project_version == 'LIVE'
+      pip: name=opbeatcli state=present executable=pip3
+
   handlers:
 
     - include: handlers.yml
@@ -76,7 +80,12 @@
 
   # Set variables for use during this play
 
+  vars_files:
+    # Load secret credentials from encrypted Ansible Vault file
+    - credentials.yml
+
   vars:
+    # Generate a Django secret key if we need to use it later
     - secret_key: "{{ lookup('password', '/tmp/' + site_fqdn + '.key length=50') }}"
 
   # The tasks to perform
@@ -141,6 +150,13 @@
           settings="{{ django_project_name }}.settings"
           virtualenv="{{ deployment_dir }}/virtualenv"
       sudo_user: "{{ deployment_user }}"
+
+    - name: Notify Opbeat about the new release
+      when: django_project_version == 'LIVE'
+      command: >
+        opbeat -o {{ opbeat_org_id }} -a {{ opbeat_app_id }}
+        -t {{ opbeat_secret_key }}
+        deployment --component path:{{ deployment_dir }}
 
   handlers:
 
