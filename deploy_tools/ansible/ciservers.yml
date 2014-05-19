@@ -25,3 +25,12 @@
   roles:
     - nginx
     - jenkins
+
+  post_tasks:
+    - name: disable NGINX default site
+      file: path=/etc/nginx/sites-enabled/default state=absent
+      notify: restart nginx
+
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted
