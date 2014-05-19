@@ -1,12 +1,12 @@
-[web]
-SITE_NAME ansible_ssh_host=SERVER_IP
+[webservers]
+superlists.snowflake.nu ansible_ssh_host=188.226.188.104
 
-[web:vars]
-site_fqdn=SITE_NAME
-deployment_user=SITE_USER
+[webservers:vars]
+site_fqdn=superlists.snowflake.nu
+deployment_user=elspeth
 deployment_dir=/home/{{ deployment_user }}/sites/{{ site_fqdn }}
 django_project_name=superlists
-django_project_repo=REPO_URL
+django_project_repo=https://github.com/jwarlander/superlists.git
 django_project_version=LIVE
 django_python="{{ deployment_dir }}/virtualenv/bin/python"
 django_manage_cmd="{{ django_python }} {{ deployment_dir }}/manage.py"

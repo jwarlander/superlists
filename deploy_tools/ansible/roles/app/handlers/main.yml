@@ -1,0 +1,4 @@
+---
+- name: restart gunicorn
+  service: name=gunicorn-{{ site_fqdn }} state=restarted
+  remote_user: root

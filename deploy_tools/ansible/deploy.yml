@@ -1,0 +1,16 @@
+---
+# file: deploy.yml
+- hosts: webservers
+  remote_user: "{{ deployment_user }}"
+  gather_facts: false
+
+  vars_files:
+    # Load secret credentials from encrypted Ansible Vault file
+    - vars/credentials.yml
+
+  vars:
+    # Generate a Django secret key if we need to use it later
+    - secret_key: "{{ lookup('password', '/tmp/' + site_fqdn + '.key length=50') }}"
+
+  roles:
+    - app

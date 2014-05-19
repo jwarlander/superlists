@@ -1,0 +1,58 @@
+---
+# file: roles/app/tasks/main.yml
+- name: Clone git repo
+  git: repo={{ django_project_repo }}
+       version={{ django_project_version }}
+       dest={{ deployment_dir }}
+       update=yes
+  notify:
+    - restart gunicorn
+
+- name: Disable DEBUG mode in settings.py
+  lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
+               regexp=''^DEBUG = True''
+               line=''DEBUG = False'''
+
+- name: Configure DOMAIN in settings.py
+  lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
+               regexp=''^DOMAIN =.*''
+               line=''DOMAIN = "{{ site_fqdn }}"'''
+
+- name: Deploy new SECRET_KEY if missing
+  copy: 'content=''SECRET_KEY = "{{ secret_key }}"''
+         dest={{ deployment_dir }}/{{ django_project_name }}/secret_key.py
+         force=no'
+
+- name: Import SECRET_KEY in settings.py
+  lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
+               line=''from .secret_key import SECRET_KEY''
+               insertafter=EOF
+               state=present'
+
+- name: Install project dependencies in virtualenv
+  pip: requirements={{ deployment_dir }}/requirements-prod.txt
+       virtualenv={{ deployment_dir }}/virtualenv
+       virtualenv_command=virtualenv-3.3
+
+- name: Collect static content
+  django_manage: >
+      command=collectstatic
+      app_path="{{ deployment_dir }}"
+      settings="{{ django_project_name }}.settings"
+      virtualenv="{{ deployment_dir }}/virtualenv"
+
+- name: Create or update database
+  django_manage: >
+      command=migrate
+      app_path="{{ deployment_dir }}"
+      settings="{{ django_project_name }}.settings"
+      virtualenv="{{ deployment_dir }}/virtualenv"
+
+- name: Notify Opbeat about the new release
+  when: django_project_version == 'LIVE'
+  command: >
+      /usr/local/bin/opbeat
+      -o {{ opbeat_org_id }}
+      -a {{ opbeat_app_id }}
+      -t {{ opbeat_secret_key }}
+      deployment --component path:{{ deployment_dir }}

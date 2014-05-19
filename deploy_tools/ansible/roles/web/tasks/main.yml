@@ -1,0 +1,60 @@
+---
+# file: roles/web/tasks/main.yml
+- name: Create user account
+  user: name={{ deployment_user }}
+
+- name: Install local SSH key into authorized_keys
+  authorized_key: 'user={{ deployment_user }}
+                   key="{{ lookup(''file'', ''~/.ssh/id_rsa.pub'') }}"'
+
+- name: Install system-wide OS packages
+  apt: name={{ item }} state=present
+  with_items:
+    - nginx
+    - git
+    - python3
+    - python3-pip
+
+- name: Install system-wide Python packages
+  pip: name=virtualenv state=present executable=pip3
+
+- name: Disable NGINX default site
+  file: path=/etc/nginx/sites-enabled/default state=absent
+
+- name: Deploy NGINX configuration
+  template: src=nginx.conf.j2
+            dest=/etc/nginx/nginx.conf
+            owner=root mode=0644
+  notify:
+    - restart nginx
+
+- name: Deploy NGINX site
+  template: src=nginx-site.conf.j2
+            dest=/etc/nginx/sites-available/{{ site_fqdn }}
+            owner=root mode=0644
+  notify:
+    - restart nginx
+
+- name: Enable NGINX site
+  file: src=/etc/nginx/sites-available/{{ site_fqdn }}
+        dest=/etc/nginx/sites-enabled/{{ site_fqdn }}
+        state=link
+  notify:
+    - restart nginx
+
+- name: Deploy Gunicorn upstart configuration
+  template: src=gunicorn-upstart.conf.j2
+            dest=/etc/init/gunicorn-{{ site_fqdn }}.conf
+            owner=root mode=0644
+  notify:
+    - restart gunicorn
+
+- name: Enable NGINX
+  service: name=nginx enabled=yes
+
+- name: Enable Gunicorn
+  service: name=gunicorn-{{ site_fqdn }} enabled=yes
+
+- name: Install Opbeat CLI
+  when: django_project_version == 'LIVE'
+  pip: name=opbeatcli state=latest executable=pip3

@@ -1,7 +1,7 @@
-[web]
+[webservers]
 superlists-staging.snowflake.nu ansible_ssh_host=188.226.188.104
 
-[web:vars]
+[webservers:vars]
 site_fqdn=superlists-staging.snowflake.nu
 deployment_user=elspeth
 deployment_dir=/home/{{ deployment_user }}/sites/{{ site_fqdn }}
