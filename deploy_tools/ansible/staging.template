@@ -10,3 +10,4 @@ django_project_repo=REPO_URL
 django_project_version=HEAD
 django_python="{{ deployment_dir }}/virtualenv/bin/python"
 django_manage_cmd="{{ django_python }} {{ deployment_dir }}/manage.py"
+opbeat_enable=false
