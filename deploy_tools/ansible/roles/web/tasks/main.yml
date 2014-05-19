@@ -28,33 +28,5 @@
   notify:
     - restart nginx
 
-- name: Deploy NGINX site
-  template: src=nginx-site.conf.j2
-            dest=/etc/nginx/sites-available/{{ site_fqdn }}
-            owner=root mode=0644
-  notify:
-    - restart nginx
-
-- name: Enable NGINX site
-  file: src=/etc/nginx/sites-available/{{ site_fqdn }}
-        dest=/etc/nginx/sites-enabled/{{ site_fqdn }}
-        state=link
-  notify:
-    - restart nginx
-
-- name: Deploy Gunicorn upstart configuration
-  template: src=gunicorn-upstart.conf.j2
-            dest=/etc/init/gunicorn-{{ site_fqdn }}.conf
-            owner=root mode=0644
-  notify:
-    - restart gunicorn
-
 - name: Enable NGINX
   service: name=nginx enabled=yes
-
-- name: Enable Gunicorn
-  service: name=gunicorn-{{ site_fqdn }} enabled=yes
-
-- name: Install Opbeat CLI
-  when: opbeat_enabled == true
-  pip: name=opbeatcli state=latest executable=pip3

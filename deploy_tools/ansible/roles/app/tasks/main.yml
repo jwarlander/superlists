@@ -1,5 +1,8 @@
 ---
 # file: roles/app/tasks/main.yml
+
+# Application
+
 - name: Clone git repo
   git: repo={{ django_project_repo }}
        version={{ django_project_version }}
@@ -29,10 +32,15 @@
                insertafter=EOF
                state=present'
 
+- name: Set correct virtualenv command (Ubuntu 14.04+)
+  when: ansible_distribution == 'Ubuntu' and
+        ansible_distribution_release == 'trusty'
+  set_fact: virtualenv_command='virtualenv'
+
 - name: Install project dependencies in virtualenv
   pip: requirements={{ deployment_dir }}/requirements-prod.txt
        virtualenv={{ deployment_dir }}/virtualenv
-       virtualenv_command=virtualenv-3.3
+       virtualenv_command={{ virtualenv_command|default('virtualenv-3.3') }}
 
 - name: Collect static content
   django_manage: >
@@ -47,6 +55,43 @@
       app_path="{{ deployment_dir }}"
       settings="{{ django_project_name }}.settings"
       virtualenv="{{ deployment_dir }}/virtualenv"
+
+# NGINX + GUnicorn
+
+- name: Deploy NGINX site
+  remote_user: root
+  template: src=nginx-site.conf.j2
+            dest=/etc/nginx/sites-available/{{ site_fqdn }}
+            owner=root mode=0644
+  notify:
+    - restart nginx
+
+- name: Enable NGINX site
+  remote_user: root
+  file: src=/etc/nginx/sites-available/{{ site_fqdn }}
+        dest=/etc/nginx/sites-enabled/{{ site_fqdn }}
+        state=link
+  notify:
+    - restart nginx
+
+- name: Deploy Gunicorn upstart configuration
+  remote_user: root
+  template: src=gunicorn-upstart.conf.j2
+            dest=/etc/init/gunicorn-{{ site_fqdn }}.conf
+            owner=root mode=0644
+  notify:
+    - restart gunicorn
+
+- name: Enable Gunicorn
+  remote_user: root
+  service: name=gunicorn-{{ site_fqdn }} enabled=yes
+
+# Opbeat
+
+- name: Install Opbeat CLI
+  remote_user: root
+  when: opbeat_enabled == true
+  pip: name=opbeatcli state=latest executable=pip3
 
 - name: Notify Opbeat about the new release
   when: opbeat_enabled == true
