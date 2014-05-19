@@ -76,30 +76,86 @@ The project contains a playbook that will automatically do all of the above.
 
 ### Requirements
 
--   server exists, the IP is known, and you have root access
--   currently assumes Ubuntu 13.x
+Servers:
+
+-   servers for web + CI exist, the IPs are known, and you have root access
+-   currently assumes Ubuntu 13.x (app) / 14.x (CI) but may work for others
+
+Inventory files:
+
+-   Copy `deploy_tools/ansible/staging.template` to
+    `deploy_tools/ansible/staging` and replace APP_HOSTNAME,
+    APP_SERVER_IP, APP_USER, CI_HOSTNAME, CI_SERVER_IP and REPO_URL
+-   Copy `deploy_tools/ansible/production.template` to
+    `deploy_tools/ansible/production` and replace APP_HOSTNAME,
+    APP_SERVER_IP, APP_USER, CI_HOSTNAME, CI_SERVER_IP and REPO_URL
+
+SSH keys:
+
+-   Create an SSH key set for Jenkins:
+
+        # Use an empty password, when asked..
+        ssh-keygen -t rsa -f jenkins -q
+
+-   Create the vars file for SSH keys:
+
+        ansible-vault create deploy_tools/ansible/vars/sshkeys.yml
+
+The last step above will ask for a password (make it a good one, and
+remember it!), then put you in edit mode. Here, you'll be using copy-paste
+to end up with something like this:
+
+    ---
+    jenkins_private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEA3Bf2AZ68qx/APWThYtMj8qSuUKrwLk6M1FBArouWQY+9uvMs
+        D4N5EgS3p2TIECurgya4VivFMlTpblOP4SDr2cOM4HSnvNgUQ93Qb9uXfOaemzPs
+        <...more lines...>
+        leLhPke0/ZBJURhMUa51hIKuXA81coe2tWpVQ3W+Qc7uQc62jGyw
+        -----END RSA PRIVATE KEY-----
+
+    jenkins_public_key: |-
+        ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDcF/YBnryrH8A9ZOFi0yPypK5QqvAuTozUUECui5ZBj7268ywPg3kSBLenZMgQK6uDJrhWK8UyVOluU4/hIOvZw4zgdKe82BRD3dBv25d85p6bM+zqdVNyP4+CfoETiu6voEUOx5NYKWgRBPRGeyHng3jV79u7oQCpIBQBYBVa18dMRHcDVLvuGuxN+b32EOu9ptyB1hJBpeFiTp4hg94AZAiJO250mRnsv75fFQWY7paMecCXK4L49ciZ1aKagAGXa1mTBFaO0TRudQkPWalxQQZ2TlDcCfkvFvy0c6/Nm5XdTm2IUwibiy6vIozJxe9L52UCN+DYL8qFljODGydH jenkins
+
+Note that the public key should be all on one line, and that the YAML entry for
+it must use '|-' to properly strip the ending newline.
 
 ### USAGE
 
 The playbook can be executed from anywhere, as long as you have Ansible
 installed and can connect to the server as `root` over SSH.
 
+#### Deploying with ansible-playbook
+
 To do a staging deployment:
 
--   Copy `deploy_tools/ansible/hosts-staging.template` to
-    `deploy_tools/ansible/hosts-staging` and replace SERVER_IP,
-    SITE_NAME, SITE_USER and REPO_URL
 -   Run the playbook; either with password-based access:
 
         ansible-playbook deploy_tools/ansible/site.yml \
-                         -i deploy_tools/ansible/hosts-staging \
-                         --ask-pass
+                         -i deploy_tools/ansible/staging \
+                         --ask-pass \
+                         --ask-vault-pass
 
-    ..or, if you have an SSH key:
+    ..or, if you have an SSH key, and a pw file for the Vault:
 
         ansible-playbook deploy_tools/ansible/site.yml \
-                         -i deploy_tools/ansible/hosts-staging \
-                         --private-key=<PATH_TO_KEYFILE>
+                         -i deploy_tools/ansible/staging \
+                         --private-key=<PATH_TO_KEYFILE> \
+                         --vault-password-file=<PATH_TO_VAULTPW_FILE>
 
-For a production deployment, repeat the above with `hosts-prod` instead of
-`hosts-staging`.
+For a production deployment, repeat the above with `production` instead of
+`staging` for the inventory file.
+
+#### Deploying with wrapper scripts
+
+If you have an SSH key saved as `~/.ssh/id_rsa` that's valid for server
+access, use the top-level wrapper scripts:
+
+    ./deploy_staging.sh --ask-vault-pass
+    ./deploy_prod.sh --ask-vault-pass
+
+Similarly, with a Vault password file:
+
+    ./deploy_staging.sh --vault-password-file=<PATH_TO_VAULTPW_FILE>
+    ./deploy_prod.sh --vault-password-file=<PATH_TO_VAULTPW_FILE>
+

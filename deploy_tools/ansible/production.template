@@ -1,0 +1,15 @@
+[ciservers]
+CI_HOSTNAME ansible_ssh_host=CI_SERVER_IP
+
+[webservers]
+APP_HOSTNAME ansible_ssh_host=APP_SERVER_IP
+
+[webservers:vars]
+site_fqdn=APP_HOSTNAME
+deployment_user=APP_USER
+deployment_dir=/home/{{ deployment_user }}/sites/{{ site_fqdn }}
+django_project_name=superlists
+django_project_repo=REPO_URL
+django_project_version=LIVE
+django_python="{{ deployment_dir }}/virtualenv/bin/python"
+django_manage_cmd="{{ django_python }} {{ deployment_dir }}/manage.py"
