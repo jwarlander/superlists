@@ -65,7 +65,7 @@
 
     - name: Install Opbeat CLI
       when: django_project_version == 'LIVE'
-      pip: name=opbeatcli state=present executable=pip3
+      pip: name=opbeatcli state=latest executable=pip3
 
   handlers:
 
@@ -98,36 +98,30 @@
            dest={{ deployment_dir }}
            update=yes
       notify:
+        # We only need to notify about gunicorn here, as this step will always
+        # trigger a change..
         - restart gunicorn
 
     - name: Disable DEBUG mode in settings.py
       lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
                    regexp=''^DEBUG = True''
                    line=''DEBUG = False'''
-      notify:
-        - restart gunicorn
 
     - name: Configure DOMAIN in settings.py
       lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
                    regexp=''^DOMAIN =.*''
                    line=''DOMAIN = "{{ site_fqdn }}"'''
-      notify:
-        - restart gunicorn
 
     - name: Deploy new SECRET_KEY if missing
       copy: 'content=''SECRET_KEY = "{{ secret_key }}"''
              dest={{ deployment_dir }}/{{ django_project_name }}/secret_key.py
              force=no'
-      notify:
-        - restart gunicorn
 
     - name: Import SECRET_KEY in settings.py
       lineinfile: 'dest={{ deployment_dir }}/{{ django_project_name }}/settings.py
                    line=''from .secret_key import SECRET_KEY''
                    insertafter=EOF
                    state=present'
-      notify:
-        - restart gunicorn
 
     - name: Install project dependencies in virtualenv
       pip: requirements={{ deployment_dir }}/requirements-prod.txt
@@ -154,7 +148,9 @@
     - name: Notify Opbeat about the new release
       when: django_project_version == 'LIVE'
       command: >
-        opbeat -o {{ opbeat_org_id }} -a {{ opbeat_app_id }}
+        /usr/local/bin/opbeat
+        -o {{ opbeat_org_id }}
+        -a {{ opbeat_app_id }}
         -t {{ opbeat_secret_key }}
         deployment --component path:{{ deployment_dir }}
 
