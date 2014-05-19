@@ -56,5 +56,5 @@
   service: name=gunicorn-{{ site_fqdn }} enabled=yes
 
 - name: Install Opbeat CLI
-  when: django_project_version == 'LIVE'
+  when: opbeat_enabled == true and django_project_version == 'LIVE'
   pip: name=opbeatcli state=latest executable=pip3

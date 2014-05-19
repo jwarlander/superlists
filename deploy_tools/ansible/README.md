@@ -28,11 +28,10 @@ Briefly, this means that we've got the following structure:
         jenkins/        # - jenkins; for the CI server
         nginx/          # - nginx; for the CI server
     vars/               # Globally used variables, included in playbooks
-       credentials.yml  # - credentials (just Opbeat so far)
-       sshkeys.yml      # - SSH keys (for Jenkins)
+       secrets.yml      # - SSH keys, credentials, etc.. encrypted!
 
-To keep things safe for storing in source control, the variable files
-mentioned above are encrypted using [Ansible Vault](http://docs.ansible.com/playbooks_vault.html).
+To keep things safe for storing in source control, the `secrets.yml` file
+mentioned above is encrypted using [Ansible Vault](http://docs.ansible.com/playbooks_vault.html).
 
 In the top-level project directory there are wrapper scripts that will run
 `site.yml` for either production or staging. Due to the use of encryption,
@@ -48,3 +47,15 @@ you must either tell Ansible that you want to be asked for the Vault password:
 
 _**NOTE:** As indicated above, to install the CI server, you must run `site.yml`
 for production; staging will only deal with the Superlists web server.
+
+Opbeat
+------
+
+If you want to integrate with [Opbeat](https://opbeat.com/), make sure you have an account,
+then add the following to `vars/secrets.yml`:
+
+    opbeat_org_id: <YOUR_ORGANIZATION_ID>
+    opbeat_app_id: <YOUR_APPLICATION_ID>
+    opbeat_secret_key: <YOUR_SECRET_KEY>
+
+Finally, set `opbeat_enable=true` in the inventory file (`production`).

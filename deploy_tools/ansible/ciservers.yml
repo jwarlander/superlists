@@ -4,7 +4,7 @@
   remote_user: root
 
   vars_files:
-    - vars/sshkeys.yml
+    - vars/secrets.yml
 
   vars:
       jenkins_nginx_proxy: yes

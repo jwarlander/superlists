@@ -6,7 +6,7 @@
 
   vars_files:
     # Load secret credentials from encrypted Ansible Vault file
-    - vars/credentials.yml
+    - vars/secrets.yml
 
   vars:
     # Generate a Django secret key if we need to use it later

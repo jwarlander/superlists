@@ -99,7 +99,7 @@ SSH keys:
 
 -   Create the vars file for SSH keys:
 
-        ansible-vault create deploy_tools/ansible/vars/sshkeys.yml
+        ansible-vault create deploy_tools/ansible/vars/secrets.yml
 
 The last step above will ask for a password (make it a good one, and
 remember it!), then put you in edit mode. Here, you'll be using copy-paste

@@ -49,7 +49,7 @@
       virtualenv="{{ deployment_dir }}/virtualenv"
 
 - name: Notify Opbeat about the new release
-  when: django_project_version == 'LIVE'
+  when: opbeat_enabled == true and django_project_version == 'LIVE'
   command: >
       /usr/local/bin/opbeat
       -o {{ opbeat_org_id }}
