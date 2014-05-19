@@ -1,6 +1,3 @@
-[ciservers]
-CI_HOSTNAME ansible_ssh_host=CI_SERVER_IP
-
 [webservers]
 APP_HOSTNAME ansible_ssh_host=APP_SERVER_IP
 
