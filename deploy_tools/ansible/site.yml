@@ -1,4 +1,5 @@
 ---
 # file: site.yml
+- include: ciservers.yml
 - include: webservers.yml
 - include: deploy.yml

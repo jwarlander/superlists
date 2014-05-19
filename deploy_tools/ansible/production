@@ -1,3 +1,6 @@
+[ciservers]
+ci.snowflake.nu ansible_ssh_host=188.226.234.201
+
 [webservers]
 superlists.snowflake.nu ansible_ssh_host=188.226.188.104
 

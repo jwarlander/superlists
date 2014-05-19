@@ -1,0 +1,27 @@
+---
+# file: ciservers.yml
+- hosts: ciservers
+  remote_user: root
+
+  vars_files:
+    - vars/sshkeys.yml
+
+  vars:
+      jenkins_nginx_proxy: yes
+      jenkins_nginx_hostname: ci.snowflake.nu
+      jenkins_ssh_key_file: "/priv/jenkins.key"
+      jenkins_ssh_known_hosts:
+        - bitbucket.org
+        - github.com
+
+  pre_tasks:
+    - name: create /priv directory
+      file: path=/priv state=directory mode=0700
+    - name: deploy SSH key
+      copy: 'content="{{ jenkins_private_key }}"
+             dest=/priv/jenkins.key
+             mode=0600'
+
+  roles:
+    - nginx
+    - jenkins
