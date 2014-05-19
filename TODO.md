@@ -10,6 +10,9 @@
     -    it does seem to crash Django at that point, though..?
 -   Look at alternative mocking frameworks; unittest.mock feels somewhat
     confusing in some use cases..
+-   Use PostreSQL database deployed on separate server
+-   Add static HTML page showing "work in progress" if Gunicorn down
+-   Go for HTTPS instead, maybe with a "real" certificate
 
 
 ## Done
