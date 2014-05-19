@@ -1,9 +1,11 @@
 language: python
 python:
-  - "2.7"
   - "3.3"
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
 install:
-  - pip install -r requirements-core.txt --use-mirrors
+  - pip install -r requirements-dev.txt --use-mirrors
 script:
-  - python manage.py test lists
+  - python manage.py test
 
