@@ -8,6 +8,9 @@
   service: name=jenkins state=restarted
   when: jenkins_configure.changed
 
+- name: jenkins-configure | Wait for Jenkins to start
+  wait_for: port={{jenkins_http_port}}
+
 - name: jenkins-configure | Copy jenkins-cli
   get_url: url=http://localhost:{{jenkins_http_port}}/jnlpJars/jenkins-cli.jar dest={{jenkins_home}}/jenkins-cli.jar
   register: jenkins_cli
