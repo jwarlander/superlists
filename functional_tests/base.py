@@ -50,10 +50,15 @@ class FunctionalTest(StaticLiveServerCase):
         super().tearDown()
 
     def _test_has_failed(self):
-        for method, error in self._outcome.errors:
-            if error:
-                return True
-        return False
+        try:
+            # Python 3.3
+            return self._outcomeForDoCleanups.success
+        except AttributeError:
+            # Python 3.4
+            for method, error in self._outcome.errors:
+                if error:
+                    return True
+            return False
 
     def take_screenshot(self):
         filename = self._get_filename() + '.png'
