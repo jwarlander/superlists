@@ -16,6 +16,7 @@ class SimpleListCreationTest(FunctionalTest):
 
         # She is invited to enter a to-do item straight away
         inputbox = self.get_item_input_box()
+        self.fail()
         self.assertEqual(
                 inputbox.get_attribute('placeholder'),
                 'Enter a to-do item'
