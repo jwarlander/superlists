@@ -17,6 +17,9 @@
         - git
         - shiningpanda
         - xvfb
+      shiningpanda_pythons:
+        - { name: 'System-CPython-2.7', home: '/usr/bin/python2.7' }
+        - { name: 'Python-3', home: '/usr/bin/python3' }
 
   pre_tasks:
     - name: create /priv directory
@@ -35,10 +38,26 @@
       file: path=/etc/nginx/sites-enabled/default state=absent
       notify: restart nginx
 
-    - name: install additional requirements
+    - name: install custom Jenkins requirements
       apt: name={{ item }} state=present
       with_items: ["git", "firefox", "python3", "python-virtualenv", "xvfb"]
+
+    - name: configure ShiningPanda python installations
+      template: src=shiningpanda_pythons.xml.j2
+                dest={{ jenkins_home }}/jenkins.plugins.shiningpanda.tools.PythonInstallation.xml
+                owner=jenkins group=jenkins
+      notify:
+        - restart jenkins
+
+    - name: configure Xvfb installations
+      template: src=xvfb_config.xml.j2
+                dest={{ jenkins_home }}/org.jenkinsci.plugins.xvfb.XvfbBuildWrapper.xml
+                owner=jenkins group=jenkins
+      notify:
+        - restart jenkins
 
   handlers:
     - name: restart nginx
       service: name=nginx state=restarted
+    - name: restart jenkins
+      service: name=jenkins state=restarted

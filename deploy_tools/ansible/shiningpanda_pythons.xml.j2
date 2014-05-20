@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jenkins.plugins.shiningpanda.tools.PythonInstallation_-DescriptorImpl plugin="shiningpanda@0.20">
+  <installations>
+    {% for python in shiningpanda_pythons %}
+    <jenkins.plugins.shiningpanda.tools.PythonInstallation>
+      <name>{{ python.name }}</name>
+      <home>{{ python.home }}</home>
+      <properties/>
+    </jenkins.plugins.shiningpanda.tools.PythonInstallation>
+    {% endfor %}
+  </installations>
+</jenkins.plugins.shiningpanda.tools.PythonInstallation_-DescriptorImpl>
