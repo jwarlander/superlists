@@ -90,11 +90,11 @@
 
 - name: Install Opbeat CLI
   remote_user: root
-  when: opbeat_enabled == true
+  when: opbeat_enabled
   pip: name=opbeatcli state=latest executable=pip3
 
 - name: Notify Opbeat about the new release
-  when: opbeat_enabled == true
+  when: opbeat_enabled
   command: >
       /usr/local/bin/opbeat
       -o {{ opbeat_org_id }}

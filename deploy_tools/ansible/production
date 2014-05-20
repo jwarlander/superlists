@@ -10,4 +10,4 @@ django_project_repo=https://github.com/jwarlander/superlists.git
 django_project_version=LIVE
 django_python="{{ deployment_dir }}/virtualenv/bin/python"
 django_manage_cmd="{{ django_python }} {{ deployment_dir }}/manage.py"
-opbeat_enabled=true
+opbeat_enabled=True
