@@ -28,6 +28,9 @@
     <hudson.security.HudsonPrivateSecurityRealm_-Details>
       <passwordHash>{{ jenkins_admin_password_hash }}</passwordHash>
     </hudson.security.HudsonPrivateSecurityRealm_-Details>
+    <org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl>
+      <authorizedKeys>{{ jenkins_public_key }}</authorizedKeys>
+    </org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl>
     <hudson.tasks.Mailer_-UserProperty plugin="mailer@1.8">
         <emailAddress>{{ jenkins_admin_email }}</emailAddress>
     </hudson.tasks.Mailer_-UserProperty>
