@@ -13,6 +13,10 @@
       jenkins_ssh_known_hosts:
         - bitbucket.org
         - github.com
+      jenkins_plugins:
+        - git
+        - shiningpanda
+        - xvfb
 
   pre_tasks:
     - name: create /priv directory
