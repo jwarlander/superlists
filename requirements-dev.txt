@@ -1,2 +1,2 @@
 -r requirements-core.txt
-selenium==2.41.0
+selenium>=2.41.0
