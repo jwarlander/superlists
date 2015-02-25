@@ -1,9 +1,9 @@
 [webservers]
-superlists.snowflake.nu ansible_ssh_host=188.226.188.104
+superlists.snowflake.nu ansible_ssh_host=188.166.14.151
 
 [webservers:vars]
 site_fqdn=superlists.snowflake.nu
-deployment_user=elspeth
+deployment_user=superlists
 deployment_dir=/home/{{ deployment_user }}/sites/{{ site_fqdn }}
 django_project_name=superlists
 django_project_repo=https://github.com/jwarlander/superlists.git
