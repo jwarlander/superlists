@@ -22,6 +22,8 @@
         - { name: 'Python-3', home: '/usr/bin/python3' }
 
   pre_tasks:
+    - name: upgrade packages
+      apt: upgrade=yes update_cache=yes
     - name: create /priv directory
       file: path=/priv state=directory mode=0700
     - name: deploy SSH key
