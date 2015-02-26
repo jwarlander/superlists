@@ -6,7 +6,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 install:
   - pip install -r requirements-core.txt --use-mirrors
-  - pip install -q selenium==2.410
+  - pip install -q selenium==2.41.0
 script:
   - python manage.py test
 
