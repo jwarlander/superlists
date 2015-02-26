@@ -5,7 +5,8 @@ before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
 install:
-  - pip install -r requirements-dev.txt --use-mirrors
+  - pip install -r requirements-core.txt --use-mirrors
+  - pip install -q selenium==2.410
 script:
   - python manage.py test
 
